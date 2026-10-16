@@ -1,0 +1,22 @@
+# Logs
+logs/
+
+# Data lake contents
+datalake/*
+
+# Environment variables and secrets
+.env
+.env.*
+!.env.example
+
+# Python cache
+__pycache__/
+*.py[cod]
+
+# Virtual environments
+venv/
+.venv/
+
+# OS files
+.DS_Store
+Thumbs.db

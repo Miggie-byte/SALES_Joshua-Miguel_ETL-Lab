@@ -1,0 +1,17 @@
+order_id,order_date,store_id,store_name,barangay,city,product_id,product_name,category,quantity,unit_price
+ORD-1001,2026-10-01,S001,Aling Nena Sari-Sari,Brgy. 412,Manila,P001,Instant pancit canton,Noodles,7,16.00
+ORD-1001,2026-10-01,S001,Aling Nena Sari-Sari,Brgy. 412,Manila,P002,3-in-1 coffee sachet,Beverages,10,9.00
+ORD-1002,2026-10-01,S002,Mang Tonyo Store,Brgy. Holy Spirit,Quezon City,P004,Softdrink 1.5L,Beverages,2,75.00
+ORD-1002,2026-10-01,S002,Mang Tonyo Store,Brgy. Holy Spirit,Quezon City,P003,Canned sardines 155g,canned goods ,4,25.00
+ORD-1003,2026-10-02,S003,Tindahan ni Lorna,Brgy. San Antonio,Pasig,P005,Rice 1kg,Grains,3,52.00
+ORD-1003,2026-10-02,S003,Tindahan ni Lorna,Brgy. San Antonio,Pasig,P006,Bath soap bar,Personal care,2,30.00
+ORD-1004,2026-10-02,S001, Aling Nena Sari-Sari ,Brgy. 412,Manila,P003,Canned sardines 155g,Canned goods,6,25.00
+ORD-1004,2026-10-02,S001,Aling Nena Sari-Sari,Brgy. 412,Manila,P003,Canned sardines 155g,Canned goods,6,25.00
+ORD-1005,2026-10-03,S002,Mang Tonyo Store,Brgy. Holy Spirit,Quezon City,P001,Instant pancit canton,Noodles,,16.00
+ORD-1005,2026-10-03,S002,Mang Tonyo Store,Brgy. Holy Spirit,Quezon City,P002,3-in-1 coffee sachet,Beverages,12,9.00
+ORD-1006,2026-10-03,S003,Tindahan ni Lorna,Brgy. San Antonio,Pasig,P004,Softdrink 1.5L,Beverages,-1,75.00
+ORD-1006,2026-10-03,S003,Tindahan ni Lorna,Brgy. San Antonio,Pasig,P001,Instant pancit canton,Noodles,8,16.00
+ORD-1007,2026-10-04,S001,Aling Nena Sari-Sari,Brgy. 412,Manila,P005,Rice 1kg,Grains,2,52.00
+ORD-1007,2026-10-04,S001,Aling Nena Sari-Sari,Brgy. 412,Manila,P004,Softdrink 1.5L,BEVERAGES,1,75.00
+ORD-1008,2026-10-04,S002,Mang Tonyo Store,Brgy. Holy Spirit,Quezon City,P006,Bath soap bar,Personal care,3,30.00
+ORD-1008,2026-10-04,S002,Mang Tonyo Store,Brgy. Holy Spirit,Quezon City,P005,Rice 1kg,Grains,5,52.00

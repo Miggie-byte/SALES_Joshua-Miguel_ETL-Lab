@@ -1,0 +1,102 @@
+x-airflow-common: &airflow-common
+  build: .
+  image: dw-etl-airflow:3.0.6
+  user: "${AIRFLOW_UID:-50000}:0"
+  environment:
+    AIRFLOW__CORE__EXECUTOR: LocalExecutor
+    AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@airflow-db:5432/airflow
+    AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+    AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: "true"
+    AIRFLOW__CORE__FERNET_KEY: ""
+    # Airflow 3: tasks report back to the API server through the Execution API
+    AIRFLOW__CORE__EXECUTION_API_SERVER_URL: http://airflow-apiserver:8080/execution/
+    AIRFLOW__API_AUTH__JWT_SECRET: cselec1c-classroom-secret
+    # Classroom only: no login screen, everyone is admin
+    AIRFLOW__CORE__SIMPLE_AUTH_MANAGER_ALL_ADMINS: "True"
+    # Connection to the warehouse, read by PostgresHook as conn id "dwh_postgres"
+    AIRFLOW_CONN_DWH_POSTGRES: postgres://dwh:dwh@dwh-postgres:5432/dwh
+  volumes:
+    - ./dags:/opt/airflow/dags
+    - ./logs:/opt/airflow/logs
+    - ./plugins:/opt/airflow/plugins
+    - ./data:/opt/airflow/data
+    - ./datalake:/opt/airflow/datalake
+  depends_on: &airflow-depends
+    airflow-db:
+      condition: service_healthy
+    dwh-postgres:
+      condition: service_healthy
+
+services:
+  # Airflow's own metadata database
+  airflow-db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: airflow
+      POSTGRES_PASSWORD: airflow
+      POSTGRES_DB: airflow
+    volumes:
+      - airflow-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "airflow"]
+      interval: 5s
+      retries: 10
+
+  # The data warehouse
+  dwh-postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: dwh
+      POSTGRES_PASSWORD: dwh
+      POSTGRES_DB: dwh
+    ports:
+      - "5433:5432"   # host 5433 avoids clashing with a local Postgres
+    volumes:
+      - dwh-data:/var/lib/postgresql/data
+      - ./sql/init_dwh.sql:/docker-entrypoint-initdb.d/01_init_dwh.sql:ro
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "dwh"]
+      interval: 5s
+      retries: 10
+
+  # Runs once: creates/upgrades the metadata tables
+  airflow-init:
+    <<: *airflow-common
+    command: db migrate
+    restart: "no"
+
+  # Web UI + REST API on http://localhost:8080
+  airflow-apiserver:
+    <<: *airflow-common
+    command: api-server
+    ports:
+      - "8080:8080"
+    restart: always
+    depends_on:
+      <<: *airflow-depends
+      airflow-init:
+        condition: service_completed_successfully
+
+  # Decides what runs when; LocalExecutor runs the tasks here
+  airflow-scheduler:
+    <<: *airflow-common
+    command: scheduler
+    restart: always
+    depends_on:
+      <<: *airflow-depends
+      airflow-init:
+        condition: service_completed_successfully
+
+  # Parses files in dags/
+  airflow-dag-processor:
+    <<: *airflow-common
+    command: dag-processor
+    restart: always
+    depends_on:
+      <<: *airflow-depends
+      airflow-init:
+        condition: service_completed_successfully
+
+volumes:
+  airflow-db-data:
+  dwh-data:
