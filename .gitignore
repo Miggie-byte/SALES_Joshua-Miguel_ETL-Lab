@@ -3,6 +3,7 @@ logs/
 
 # Data lake contents
 datalake/*
+!datalake/.gitkeep
 
 # Environment variables and secrets
 .env
