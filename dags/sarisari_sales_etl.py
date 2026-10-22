@@ -40,14 +40,20 @@ SELECT DISTINCT
 FROM staging.stg_sales
 ON CONFLICT (date_key) DO NOTHING;
 
-INSERT INTO dw.dim_store (store_id, store_name, barangay, city)
-SELECT DISTINCT ON (store_id) store_id, store_name, barangay, city
-FROM staging.stg_sales
-ORDER BY store_id
-ON CONFLICT (store_id) DO UPDATE
-SET store_name = EXCLUDED.store_name,
-    barangay   = EXCLUDED.barangay,
-    city       = EXCLUDED.city;
+UPDATE dw.dim_store AS ds
+SET valid_to = CURRENT_TIMESTAMP, is_current = FALSE
+WHERE ds.is_current = TRUE AND EXISTS (
+SELECT TRUE FROM staging.stg_sales AS s
+WHERE s.store_id = ds.store_id
+AND ( s.barangay IS DISTINCT FROM ds.barangay OR s.city IS DISTINCT FROM ds.city ));
+
+INSERT INTO dw.dim_store (store_id, store_name, barangay, city, valid_from, valid_to, is_current)
+SELECT DISTINCT s.store_id, s.store_name, s.barangay, s.city, CURRENT_TIMESTAMP, TIMESTAMP 'infinity', TRUE
+FROM staging.stg_sales AS s
+WHERE NOT EXISTS (
+SELECT TRUE 
+FROM dw.dim_store AS ds
+WHERE ds.store_id = s.store_id AND ds.is_current = TRUE);
 
 INSERT INTO dw.dim_product (product_id, product_name, category)
 SELECT DISTINCT ON (product_id) product_id, product_name, category
