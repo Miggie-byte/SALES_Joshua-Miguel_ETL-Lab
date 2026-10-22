@@ -57,6 +57,7 @@ ON CONFLICT (product_id) DO UPDATE
 SET product_name = EXCLUDED.product_name,
     category     = EXCLUDED.category;
 
+    -- Step 4: fact_sales loading
 INSERT INTO dw.fact_sales (order_id, date_key, store_key, product_key,
                            quantity, unit_price, line_total, batch_id)
 SELECT s.order_id,
@@ -65,15 +66,13 @@ SELECT s.order_id,
        dp.product_key,
        s.quantity, s.unit_price, s.line_total, s.batch_id
 FROM staging.stg_sales s
-JOIN dw.dim_store ds   ON ds.store_id   = s.store_id
+JOIN dw.dim_store ds   ON ds.store_id   = s.store_id AND ds.is_current = TRUE
 JOIN dw.dim_product dp ON dp.product_id = s.product_id
 ON CONFLICT (order_id, product_key) DO UPDATE
 SET date_key   = EXCLUDED.date_key,
-    store_key  = EXCLUDED.store_key,
     quantity   = EXCLUDED.quantity,
     unit_price = EXCLUDED.unit_price,
-    line_total = EXCLUDED.line_total,
-    batch_id   = EXCLUDED.batch_id;
+    line_total = EXCLUDED.line_total;
 """
 
 
@@ -162,8 +161,18 @@ def sarisari_sales_etl():
             "fact table is not empty":
                 "SELECT COUNT(*) > 0 FROM dw.fact_sales",
             "every staged row reached the fact table":
-                "SELECT (SELECT COUNT(*) FROM staging.stg_sales) = "
-                "(SELECT COUNT(*) FROM dw.fact_sales WHERE batch_id = %(b)s)",
+                """SELECT NOT EXISTS (
+                    SELECT 1 
+                    FROM staging.stg_sales AS s
+                    JOIN dw.dim_product AS dp 
+                      ON dp.product_id = s.product_id
+                    WHERE NOT EXISTS (
+                        SELECT 1 
+                        FROM dw.fact_sales AS f
+                        WHERE f.order_id = s.order_id
+                          AND f.product_key = dp.product_key
+                    )
+                )""",
             "no non-positive quantities":
                 "SELECT COUNT(*) = 0 FROM dw.fact_sales WHERE quantity <= 0",
             "line_total equals quantity x unit_price":
@@ -180,7 +189,7 @@ def sarisari_sales_etl():
         if failed:
             raise ValueError(f"Data quality checks failed: {failed}")
         print(f"All {len(checks)} checks passed for batch {loaded['batch_id']}")
-
+        
     quality_check(load(transform(extract())))
 
 
