@@ -32,11 +32,18 @@ CREATE TABLE IF NOT EXISTS dw.dim_date (
 
 CREATE TABLE IF NOT EXISTS dw.dim_store (
     store_key   SERIAL PRIMARY KEY,        -- surrogate key
-    store_id    TEXT NOT NULL UNIQUE,      -- natural key from the source
+    store_id    TEXT NOT NULL,      -- natural key from the source
     store_name  TEXT,
     barangay    TEXT,
-    city        TEXT
+    city        TEXT,
+    valid_from  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    valid_to    TIMESTAMP NOT NULL DEFAULT TIMESTAMP '9999-12-31 23:59:59',
+    is_current  BOOLEAN   NOT NULL DEFAULT TRUE
 );
+
+CREATE UNIQUE INDEX IF NOT EXISTS uq_dim_store_current
+    ON dw.dim_store (store_id)
+    WHERE is_current = TRUE;
 
 CREATE TABLE IF NOT EXISTS dw.dim_product (
     product_key   SERIAL PRIMARY KEY,

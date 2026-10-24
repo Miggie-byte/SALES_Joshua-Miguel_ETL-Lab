@@ -40,40 +40,58 @@ SELECT DISTINCT
 FROM staging.stg_sales
 ON CONFLICT (date_key) DO NOTHING;
 
-UPDATE dw.dim_store AS ds
-SET valid_to = CURRENT_TIMESTAMP, is_current = FALSE
-WHERE ds.is_current = TRUE AND EXISTS (
-SELECT TRUE FROM staging.stg_sales AS s
-WHERE s.store_id = ds.store_id
-AND ( s.barangay IS DISTINCT FROM ds.barangay OR s.city IS DISTINCT FROM ds.city ));
+UPDATE dw.dim_store AS d
+SET valid_to = CURRENT_TIMESTAMP,
+    is_current = FALSE
+WHERE d.is_current = TRUE
+  AND EXISTS (SELECT 1
+          FROM staging.stg_sales AS s
+          WHERE s.store_id = d.store_id
+            AND (
+                d.store_name IS DISTINCT FROM s.store_name OR
+                d.barangay IS DISTINCT FROM s.barangay OR
+                d.city IS DISTINCT FROM s.city
+            ));
 
 INSERT INTO dw.dim_store (store_id, store_name, barangay, city, valid_from, valid_to, is_current)
-SELECT DISTINCT s.store_id, s.store_name, s.barangay, s.city, CURRENT_TIMESTAMP, TIMESTAMP 'infinity', TRUE
-FROM staging.stg_sales AS s
+SELECT DISTINCT ON (s.store_id) s.store_id, s.store_name, s.barangay, s.city, CURRENT_TIMESTAMP, TIMESTAMP '9999-12-31 23:59:59', TRUE
+FROM staging.stg_sales s
 WHERE NOT EXISTS (
-SELECT TRUE 
-FROM dw.dim_store AS ds
-WHERE ds.store_id = s.store_id AND ds.is_current = TRUE);
+    SELECT 1
+    FROM dw.dim_store d
+    WHERE d.store_id = s.store_id
+      AND d.is_current = TRUE
+)
+ORDER BY s.store_id;
 
 INSERT INTO dw.dim_product (product_id, product_name, category)
 SELECT DISTINCT ON (product_id) product_id, product_name, category
 FROM staging.stg_sales
 ORDER BY product_id
 ON CONFLICT (product_id) DO UPDATE
+    
 SET product_name = EXCLUDED.product_name,
     category     = EXCLUDED.category;
 
-    -- Step 4: fact_sales loading
-INSERT INTO dw.fact_sales (order_id, date_key, store_key, product_key,
-                           quantity, unit_price, line_total, batch_id)
-SELECT s.order_id,
-       TO_CHAR(s.order_date, 'YYYYMMDD')::INT,
-       ds.store_key,
-       dp.product_key,
-       s.quantity, s.unit_price, s.line_total, s.batch_id
+
+INSERT INTO dw.fact_sales (
+    order_id, date_key, store_key, product_key, quantity, unit_price, line_total, batch_id
+)
+SELECT
+    s.order_id,
+    TO_CHAR(s.order_date, 'YYYYMMDD')::INT,
+    ds.store_key,
+    dp.product_key,
+    s.quantity,
+    s.unit_price,
+    s.line_total,
+    s.batch_id
 FROM staging.stg_sales s
-JOIN dw.dim_store ds   ON ds.store_id   = s.store_id AND ds.is_current = TRUE
-JOIN dw.dim_product dp ON dp.product_id = s.product_id
+JOIN dw.dim_store ds
+    ON ds.store_id = s.store_id
+   AND ds.is_current = TRUE
+JOIN dw.dim_product dp
+    ON dp.product_id = s.product_id
 ON CONFLICT (order_id, product_key) DO UPDATE
 SET date_key   = EXCLUDED.date_key,
     quantity   = EXCLUDED.quantity,
@@ -166,17 +184,17 @@ def sarisari_sales_etl():
         checks = {
             "fact table is not empty":
                 "SELECT COUNT(*) > 0 FROM dw.fact_sales",
-            "every staged row reached the fact table":
-                """SELECT NOT EXISTS (
-                    SELECT 1 
-                    FROM staging.stg_sales AS s
-                    JOIN dw.dim_product AS dp 
-                      ON dp.product_id = s.product_id
+            "every staged row reached the fact table":"""
+                SELECT NOT EXISTS (
+                    SELECT 1
+                    FROM staging.stg_sales s
+                    JOIN dw.dim_product dp
+                    ON dp.product_id = s.product_id
                     WHERE NOT EXISTS (
-                        SELECT 1 
-                        FROM dw.fact_sales AS f
+                        SELECT 1
+                        FROM dw.fact_sales f
                         WHERE f.order_id = s.order_id
-                          AND f.product_key = dp.product_key
+                        AND f.product_key = dp.product_key
                     )
                 )""",
             "no non-positive quantities":
@@ -190,12 +208,12 @@ def sarisari_sales_etl():
         }
         failed = [
             name for name, sql in checks.items()
-            if not hook.get_first(sql, parameters={"b": loaded["batch_id"]})[0]
+            if not hook.get_first(sql)[0]
         ]
         if failed:
             raise ValueError(f"Data quality checks failed: {failed}")
         print(f"All {len(checks)} checks passed for batch {loaded['batch_id']}")
-        
+
     quality_check(load(transform(extract())))
 
 
