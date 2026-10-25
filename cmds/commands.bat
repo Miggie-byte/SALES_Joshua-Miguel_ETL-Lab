@@ -27,22 +27,21 @@ REM first run - initial load
 docker compose exec airflow-scheduler airflow dags unpause sarisari_sales_etl
 @echo off
 echo Checking for any scheduled DAGs.
-:wait_for_auto_run
 docker compose exec airflow-scheduler airflow dags list-runs sarisari_sales_etl | findstr "scheduled queued running" >nul
 IF %ERRORLEVEL% EQU 0 (
-    echo No scheduled DAGs found.
+    echo A scheduled DAG run was found. Skipping manual run.
 ) ELSE (
     echo No active runs found. Triggering manual run.
     @echo on
     docker compose exec airflow-scheduler airflow dags trigger sarisari_sales_etl
     @echo off
 )
-echo Waiting for the DAG run to finish.
-:wait_for_dag
+echo Waiting for the DAG run 1 to finish.
+:dag_run_1
 timeout /t 5 >nul
 docker compose exec airflow-scheduler airflow dags list-runs sarisari_sales_etl --state running | findstr "running" >nul
 IF %ERRORLEVEL% EQU 0 (
-    GOTO wait_for_dag
+    GOTO dag_run_1
 )
 echo DAG run finished.
 @echo on
@@ -55,12 +54,12 @@ REN "%data_path%\sales_2026-10a.csv" "sales_2026-10.csv"
 @echo on
 docker compose exec airflow-scheduler airflow dags trigger sarisari_sales_etl
 @echo off
-echo Waiting for the DAG run to finish.
-:wait_for_dag
+echo Waiting for the DAG run 2 to finish.
+:dag_run_2
 timeout /t 5 >nul
 docker compose exec airflow-scheduler airflow dags list-runs sarisari_sales_etl --state running | findstr "running" >nul
 IF %ERRORLEVEL% EQU 0 (
-    GOTO wait_for_dag
+    GOTO dag_run_2
 )
 echo DAG run finished.
 @echo on
@@ -73,12 +72,12 @@ REN "%data_path%\sales_2026-10b.csv" "sales_2026-10.csv"
 @echo on
 docker compose exec airflow-scheduler airflow dags trigger sarisari_sales_etl
 @echo off
-echo Waiting for the DAG run to finish.
-:wait_for_dag
+echo Waiting for the DAG run 3 to finish.
+:dag_run_3
 timeout /t 5 >nul
 docker compose exec airflow-scheduler airflow dags list-runs sarisari_sales_etl --state running | findstr "running" >nul
 IF %ERRORLEVEL% EQU 0 (
-    GOTO wait_for_dag
+    GOTO dag_run_3
 )
 echo DAG run finished.
 @echo on
