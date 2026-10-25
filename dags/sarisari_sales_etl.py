@@ -69,13 +69,12 @@ SELECT DISTINCT ON (product_id) product_id, product_name, category
 FROM staging.stg_sales
 ORDER BY product_id
 ON CONFLICT (product_id) DO UPDATE
-    
 SET product_name = EXCLUDED.product_name,
     category     = EXCLUDED.category;
 
 
-INSERT INTO dw.fact_sales (
-    order_id, date_key, store_key, product_key, quantity, unit_price, line_total, batch_id
+INSERT INTO dw.fact_sales (order_id, date_key, store_key, product_key,
+    quantity, unit_price, line_total, batch_id
 )
 SELECT
     s.order_id,
@@ -112,9 +111,9 @@ def sarisari_sales_etl():
     @task
     def extract() -> dict:
         """E: copy landing files, untouched, into a new batch folder in the raw zone."""
-        files = sorted(LANDING.glob("sales_*.csv"))
+        files = sorted(LANDING.glob("sales_2026-10.csv"))
         if not files:
-            raise FileNotFoundError(f"No sales_*.csv files found in {LANDING}")
+            raise FileNotFoundError(f"No sales_2026-10.csv files found in {LANDING}")
 
         batch_id = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S")
         target = RAW / f"ingest_date={batch_id[:8]}" / f"batch={batch_id}"
