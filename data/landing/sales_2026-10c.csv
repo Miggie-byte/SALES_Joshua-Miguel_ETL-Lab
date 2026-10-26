@@ -1,12 +1,7 @@
 order_id,order_date,store_id,store_name,barangay,city,product_id,product_name,category,quantity,unit_price
-ORD-1009,2026-10-05,S004,Josh Kanto Mart,Filinvest,Quezon City,P010,Chicken 1kg,Poultry,3,250.00
-ORD-1009,2026-10-05,S004,Josh Kanto Mart,Filinvest,Quezon City,P012,Ribeye 1kg,Red Meat,5,400.00
-ORD-1009,2026-10-05,S004,Josh Kanto Mart,Filinvest,Quezon City,P013,Old Spice Deodorant,Personal Care,3,250.00
-ORD-1009,2026-10-05,S004,Josh Kanto Mart,Filinvest,Quezon City,P014,Cerave Moisturizer,Personal Care,1,550.00
-ORD-1009,2026-10-05,S004,Josh Kanto Mart,Filinvest,Quezon City,P015,Canola Oil 1L,Vegetable Oils,2,300.00
-ORD-1009,2026-10-05,S004,Josh Kanto Mart,Filinvest,Quezon City,P016,Tilapia 1kg,Fish,5,180.00
-ORD-1009,2026-10-05,S004,Josh Kanto Mart,Filinvest,Quezon City,P017,Tender Juicy Hotdog,Cold Meat,1,250.00
-ORD-1009,2026-10-05,S004,Josh Kanto Mart,Filinvest,Quezon City,P018,Spice Century Tuna,Canned Tuna,10,70.00
-ORD-1009,2026-10-05,S004,Josh Kanto Mart,Filinvest,Quezon City,P019,Colgate Toothpaste,Toothpaste,2,50.00
-ORD-1009,2026-10-05,S004,Josh Kanto Mart,Filinvest,Quezon City,P020,Oatmeal 500g,Grains,-1,70.00
-ORD-1009,2026-10-05,S004,Josh Kanto Mart,Filinvest,Quezon City,P021,DateFailure,Test,1,100.00
+ORD-1011,2026-10-07,S004,Dart PL Store,Alabang,Muntinlupa City,P022,Chicken Drumstick 1kg,Poultry,12,260.00
+ORD-1011,2026-10-07,S004,Dart PL Store,Alabang,Muntinlupa City,P012,Ribeye 1kg,Red Meat,3,400.00
+ORD-1011,2026-10-07,S004,Dart PL Store,Alabang,Muntinlupa City,P023,Colgate Toothbrush 1 Set,Personal Care,2,400.00
+ORD-1012,2026-10-07,S004,Sales' Sales Store,Alabang,Muntinlupa City,P014,Cerave Moisturizer,Personal Care,5,550.00
+ORD-1013,2026-10-08,S004,Sales' Sales Store,Espana,Muntinlupa City,P015,Canola Oil 1L,Vegetable Oils,1,300.00
+ORD-1014,2026-10-09,S004,Sales' Sales Store,Espana,Manila City,P024,Hito 1kg,Fish,5,220.00

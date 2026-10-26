@@ -54,7 +54,14 @@ WHERE d.is_current = TRUE
             ));
 
 INSERT INTO dw.dim_store (store_id, store_name, barangay, city, valid_from, valid_to, is_current)
-SELECT DISTINCT ON (s.store_id) s.store_id, s.store_name, s.barangay, s.city, CURRENT_TIMESTAMP, TIMESTAMP '9999-12-31 23:59:59', TRUE
+SELECT DISTINCT ON (s.store_id) 
+    s.store_id, 
+    s.store_name, 
+    s.barangay, 
+    s.city, 
+    CURRENT_TIMESTAMP, 
+    TIMESTAMP '9999-12-31 23:59:59', 
+    TRUE
 FROM staging.stg_sales s
 WHERE NOT EXISTS (
     SELECT 1
@@ -62,7 +69,7 @@ WHERE NOT EXISTS (
     WHERE d.store_id = s.store_id
       AND d.is_current = TRUE
 )
-ORDER BY s.store_id;
+ORDER BY s.store_id, s.order_id DESC;
 
 INSERT INTO dw.dim_product (product_id, product_name, category)
 SELECT DISTINCT ON (product_id) product_id, product_name, category
